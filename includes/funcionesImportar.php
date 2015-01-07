@@ -81,6 +81,20 @@ function insertarDatos($codigocuenta,$comprobante,$fecha,$documento,$documentore
 	}
 }
 
+function traerNIT($proveedor) {
+	$sql = "select nit from ed_proveedores where proveedor like '%".str_replace(" ","",$proveedor)."%'";
+	$res 		=	$this->query($sql,0);
+	
+	if ($res == false) {
+		return 'Error al traer datos';
+	} else {
+		if (mysql_num_rows($res)>0) {
+			return mysql_result($res,0,0);
+		} else {
+			return "0";	
+		}
+	}
+}
 
 function cargarExcel($archivo,$nombre,$descripcion) {
 
