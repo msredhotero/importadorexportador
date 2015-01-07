@@ -87,8 +87,8 @@ function cargarExcel($archivo,$nombre,$descripcion) {
                     //incluimos la clase
                     require_once '../excelClass/PHPExcel/IOFactory.php';
                     
-					$datos = array('codigocuenta' => '00004',
-								   'comprobante' => array ('14350504','14350504','14350506','24081001','220501','129505','233595'),
+					$datos = array('comprobante' => '00004',
+								   'codigocuenta' => array ('14350504','14350504','14350506','24081001','220501','129505','233595'),
 								   'fecha' => '',
 								   'documento' => '',
 								   'documentoreferencia' => '',
@@ -159,7 +159,7 @@ function cargarExcel($archivo,$nombre,$descripcion) {
 											<td>'.$datos["plazo"].'</td>
 										</tr>
 									';*/
-									$this->insertarDatos($datos["codigocuenta"],$datos["comprobante"][$i],$datos["fecha"],$datos["documento"],$datos["documentoreferencia"],$datos["nit"],$datos["detalle"][$i],$datos["tipo"][$i],$datos["valor"][$i],$datos["valorbase"][$i],$datos["centrocostos"][$i],$datos["transaccion"],$datos["plazo"],$nombre,$descripcion);
+									$this->insertarDatos($datos["codigocuenta"][$i],$datos["comprobante"],$datos["fecha"],$datos["documento"],$datos["documentoreferencia"],$datos["nit"],$datos["detalle"][$i],$datos["tipo"][$i],$datos["valor"][$i],$datos["valorbase"][$i],$datos["centrocostos"][$i],$datos["transaccion"],$datos["plazo"],$nombre,$descripcion);
 								}
 							
 							} else {
@@ -181,7 +181,7 @@ function cargarExcel($archivo,$nombre,$descripcion) {
 											<td>'.$datos["plazo"].'</td>
 										</tr>
 									';*/
-									$this->insertarDatos($datos["codigocuenta"],$datos["comprobante"][$i],$datos["fecha"],$datos["documento"],$datos["documentoreferencia"],$datos["nit"],$datos["detalle"][$i],$datos["tipo"][$i],$datos["valor"][$i],$datos["valorbase"][$i],$datos["centrocostos"][$i],$datos["transaccion"],$datos["plazo"],$nombre,$descripcion);
+									$this->insertarDatos($datos["codigocuenta"][$i],$datos["comprobante"],$datos["fecha"],$datos["documento"],$datos["documentoreferencia"],$datos["nit"],$datos["detalle"][$i],$datos["tipo"][$i],$datos["valor"][$i],$datos["valorbase"][$i],$datos["centrocostos"][$i],$datos["transaccion"],$datos["plazo"],$nombre,$descripcion);
 								}
 							}
 						}
