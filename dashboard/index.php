@@ -9,9 +9,12 @@ if (!isset($_SESSION['usua_cv']))
 
 include ('../includes/funcionesProveedores.php');
 include ('../includes/funcionesUsuarios.php');
+include ('../includes/funcionesImportar.php');
 
 $serviciosProveedores = new ServiciosProveedores();
 $serviciosUsuario = new ServiciosUsuarios();
+$serviciosImportar = new ServiciosImportar();
+
 
 $fecha = date('Y-m-d');
 
@@ -258,7 +261,23 @@ $fecha = date('Y-m-d');
         	
         </div>
     	<div class="cuerpoBox">
-    		<form name="form1" id="form1">
+    		<form role="form" class="formulario">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="control-label" for="archivos">Ingrese un nombre a la subida</label>
+                        <div class="form-group col-md-12">
+                            <input type="text" class="form-control" id="nombre" name="nombre"/>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="control-label" for="archivos">Ingrese una descripción</label>
+                        <div class="form-group col-md-12">
+                            <textarea class="form-control" cols="50" rows="5" name="descripcion" id="descripcion">
+                            </textarea>
+                        </div>
+                    </div>
+                </div>
             	<div class="row">
             		<div class="col-md-5">
                         <label class="control-label" for="archivos">Seleccione el archivo a subir</label>
@@ -270,7 +289,11 @@ $fecha = date('Y-m-d');
                     <div class="col-md-5">
                     	<button type="button" class="btn btn-success" id="cargar">Cargar</button>
                     </div>
+                    <div class="col-md-2">
+                    
+                    </div>
                 </div>
+                <input type="hidden" id="accion" name="accion" value="importar">
             </form>
             
             <div id="load">
@@ -284,7 +307,7 @@ $fecha = date('Y-m-d');
         	<p style="color: #fff; font-size:18px; height:16px;">Datos Obtenidos</p>
         	
         </div>
-    	<div class="cuerpoBox">
+    	<div class="cuerpoBox2">
     		
             <div id="load">
             
@@ -326,6 +349,38 @@ $(document).ready(function(){
 		}
 	});
 
+$('#cargar').click(function() {
+	var formData = new FormData($(".formulario")[0]);
+			var message = "";
+			//hacemos la petición ajax  
+			$.ajax({
+				url: '../ajax/ajax.php',  
+				type: 'POST',
+				// Form data
+				//datos del formulario
+				data: formData,
+				//necesario para subir archivos via ajax
+				cache: false,
+				contentType: false,
+				processData: false,
+				//mientras enviamos el archivo
+				beforeSend: function(){
+					$("#load").html('<img src="../imagenes/load13.gif" width="50" height="50" />');
+       
+				},
+				//una vez finalizado correctamente
+				success: function(data){
+					
+					$('.cuerpoBox2').prepend(data);
+					$("#load").html('');
+				},
+				//si ha ocurrido un error
+				error: function(){
+					$('.cuerpoBox2').prepend('Error');
+				}
+			});//fin del ajax
+			
+});
 
 });
 </script>
