@@ -51,9 +51,9 @@ function subirArchivo($file) {
 	}	
 }
 
-function insertarDatos($codigocuenta,$comprobante,$fecha,$documento,$documentoreferencia,$nit,$detalle,$tipo,$valor,$valorbase,$centrocostos,$transaccion,$plazo,$nombre,$descripcion) 
+function insertarDatos($codigocuenta,$comprobante,$fecha,$documento,$documentoreferencia,$nit,$detalle,$tipo,$valor,$valorbase,$centrocostos,$transaccion,$plazo,$nombre,$descripcion,$token) 
 {
-	$sql = "insert into ed_datos(iddato,codigocuenta,comprobante,fecha,documento,documentoreferencia,nit,detalle,tipo,valor,valorbase,centrocostos,transaccion,plazo,nombre,descripcion) 
+	$sql = "insert into ed_datos(iddato,codigocuenta,comprobante,fecha,documento,documentoreferencia,nit,detalle,tipo,valor,valorbase,centrocostos,transaccion,plazo,nombre,descripcion,token) 
 			values
 				('',
 				'".$codigocuenta."',
@@ -70,7 +70,8 @@ function insertarDatos($codigocuenta,$comprobante,$fecha,$documento,$documentore
 				'".$transaccion."',
 				'".$plazo."',
 				'".$nombre."',
-				'".$descripcion."')";
+				'".$descripcion."',
+				'".$token."')";
 	//echo $sql;
 	$res 		=	$this->query($sql,1);
 	
@@ -82,7 +83,7 @@ function insertarDatos($codigocuenta,$comprobante,$fecha,$documento,$documentore
 }
 
 function traerNIT($proveedor) {
-	$sql = "select nit from ed_proveedores where proveedor like '%".str_replace(" ","",$proveedor)."%'";
+	$sql = "select nit from ed_proveedores where proveedor like '%".rtrim($proveedor)."%'";
 	$res 		=	$this->query($sql,0);
 	
 	if ($res == false) {
@@ -96,8 +97,316 @@ function traerNIT($proveedor) {
 	}
 }
 
-function cargarExcel($archivo,$nombre,$descripcion) {
+function GUID()
+{
+    if (function_exists('com_create_guid') === true)
+    {
+        return trim(com_create_guid(), '{}');
+    }
 
+    return sprintf('%04X%04X-%04X-%04X-%04X-%04X%04X%04X', mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(16384, 20479), mt_rand(32768, 49151), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535));
+}
+
+
+function traerDatosImportadosToken($token) {
+	$sql = "SELECT 
+				iddato,
+				RPAD(codigocuenta, 20, ' ') as codigocuenta,
+				comprobante,
+				concat(SUBSTRING(fecha,4,2),'/',SUBSTRING(fecha,1,2),'/',SUBSTRING(fecha,7,4)) as fecha,
+				LPAD(documento, 9, '0') as documento,
+				LPAD(documentoreferencia, 9, '0') as documentoreferencia,
+				nit,
+				RPAD(detalle, 28, ' ') as detalle,
+				tipo,
+				CAST(valor AS DECIMAL(14,2)) as valor,
+				CAST(valorbase AS DECIMAL(14,2)) as valorbase,
+				RPAD(centrocostos, 20, ' ') as centrocostos,
+				transaccion,
+				plazo,
+				nombre,
+				descripcion,
+				token
+			FROM
+				ed_datos
+			where token = '".$token."'
+			 order by iddato";
+	$res 		=	$this->query($sql,0);
+	
+	if ($res == false) {
+		return 'Error al traer datos';
+	} else {
+		return $res;
+	}
+}
+
+function ImportarTxt($token,$nombrearchivo) {
+
+	$sql = "SELECT 
+				iddato,
+				RPAD(codigocuenta, 20, ' ') as codigocuenta,
+				comprobante,
+				concat(SUBSTRING(fecha,4,2),'/',SUBSTRING(fecha,1,2),'/',SUBSTRING(fecha,7,4)) as fecha,
+				LPAD(documento, 9, '0') as documento,
+				LPAD(documentoreferencia, 9, '0') as documentoreferencia,
+				nit,
+				RPAD(detalle, 28, ' ') as detalle,
+				tipo,
+				CAST(valor AS DECIMAL(14,2)) as valor,
+				CAST(valorbase AS DECIMAL(14,2)) as valorbase,
+				RPAD(centrocostos, 20, ' ') as centrocostos,
+				transaccion,
+				plazo,
+				nombre,
+				descripcion,
+				token
+			FROM
+				ed_datos
+			where token = '".$token."'
+			 order by iddato";
+	$res 		=	$this->query($sql,0);
+	
+	if ($res == false) {
+		return 'Error al traer datos';
+	} else {
+		
+		$file = fopen("../archivos/".$nombrearchivo.".txt", "w");
+		
+		fwrite($file, 'Cuenta	Comprobante	Fecha(mm/dd/yyyy)	Documento	Documento Ref.	Nit	Detalle	Tipo	Valor	Base	Centro de Costo	Trans. Ext	Plazo' . PHP_EOL);
+		
+		while ($row = mysql_fetch_array($res)) {
+			
+			if ($row[7] == 'IVA DESCONTABLE             ') {
+				if ($row[9] != 0) {
+					fwrite($file, $row[1].'	'.$row[2].'	'.$row[3].'	'.$row[4].'	'.$row[5].'	'.$row[6].'	'.$row[7].'	'.$row[8].'	'.$row[9].'	'.$row[10].'	'.$row[11].'	'.$row[12].'	'.$row[13].'	' . PHP_EOL);
+				}
+			} else {
+				fwrite($file, $row[1].'	'.$row[2].'	'.$row[3].'	'.$row[4].'	'.$row[5].'	'.$row[6].'	'.$row[7].'	'.$row[8].'	'.$row[9].'	'.$row[10].'	'.$row[11].'	'.$row[12].'	'.$row[13].'	' . PHP_EOL);	
+			}
+		}
+		
+		fclose($file);
+		
+		return 'Archivo generado';
+	}
+	
+	
+}
+
+
+function ImportarExcel($token,$nombrearchivo) {
+	
+	require_once '../excelClass/PHPExcel.php';
+	
+	// Se crea el objeto PHPExcel
+	$objPHPExcel = new PHPExcel();
+
+	// Se asignan las propiedades del libro
+	$objPHPExcel->getProperties()->setCreator("Marcos") // Nombre del autor
+		->setLastModifiedBy("Marcos") //Ultimo usuario que lo modificó
+		->setTitle($nombrearchivo) // Titulo
+		->setSubject($nombrearchivo) //Asunto
+		->setDescription("Exportacion de datos") //Descripción
+		->setKeywords("datos") //Etiquetas
+		->setCategory("Reporte excel"); //Categorias
+	
+	$tituloReporte = "Registros Contables";
+	$titulosColumnas = array('Cuenta', 'Comprobante', 'Fecha(mm/dd/yyyy)', 'Documento', 'Documento Ref.', 'Nit', 'Detalle', 'Tipo', 'Valor', 'Base', 'Centro de Costo', 'Trans. Ext', 'Plazo');
+	
+	// Se combinan las celdas A1 hasta D1, para colocar ahí el titulo del reporte
+	$objPHPExcel->setActiveSheetIndex(0)->mergeCells('A1:D1');
+
+	// Se agregan los titulos del reporte
+	$objPHPExcel->setActiveSheetIndex(0)
+		->setCellValue('A1',$tituloReporte) // Titulo del reporte
+		->setCellValue('A3',  $titulosColumnas[0])  //Titulo de las columnas
+		->setCellValue('B3',  $titulosColumnas[1])
+		->setCellValue('C3',  $titulosColumnas[2])
+		->setCellValue('D3',  $titulosColumnas[3])
+		->setCellValue('E3',  $titulosColumnas[4])
+		->setCellValue('F3',  $titulosColumnas[5])
+		->setCellValue('G3',  $titulosColumnas[6])
+		->setCellValue('H3',  $titulosColumnas[7])
+		->setCellValue('I3',  $titulosColumnas[8])
+		->setCellValue('J3',  $titulosColumnas[9])
+		->setCellValue('K3',  $titulosColumnas[10])
+		->setCellValue('L3',  $titulosColumnas[11])
+		->setCellValue('M3',  $titulosColumnas[12]);
+	
+	$estiloTituloReporte = array(
+		'font' => array(
+			'name'      => 'Verdana',
+			'bold'      => true,
+			'italic'    => false,
+			'strike'    => false,
+			'size' =>16,
+			'color'     => array(
+				'rgb' => 'FFFFFF'
+			)
+		),
+		'fill' => array(
+			'type'  => PHPExcel_Style_Fill::FILL_SOLID,
+			'color' => array(
+				'argb' => 'FF220835')
+		),
+		'borders' => array(
+			'allborders' => array(
+				'style' => PHPExcel_Style_Border::BORDER_NONE
+			)
+		),
+		'alignment' => array(
+			'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
+			'vertical' => PHPExcel_Style_Alignment::VERTICAL_CENTER,
+			'rotation' => 0,
+			'wrap' => TRUE
+		)
+	);
+	 
+	$estiloTituloColumnas = array(
+		'font' => array(
+			'name'  => 'Arial',
+			'bold'  => true,
+			'color' => array(
+				'rgb' => 'FFFFFF'
+			)
+		),
+		'fill' => array(
+			'type'       => PHPExcel_Style_Fill::FILL_GRADIENT_LINEAR,
+		'rotation'   => 90,
+			'startcolor' => array(
+				'rgb' => 'c47cf2'
+			),
+			'endcolor' => array(
+				'argb' => 'FF431a5d'
+			)
+		),
+		'borders' => array(
+			'top' => array(
+				'style' => PHPExcel_Style_Border::BORDER_MEDIUM ,
+				'color' => array(
+					'rgb' => '143860'
+				)
+			),
+			'bottom' => array(
+				'style' => PHPExcel_Style_Border::BORDER_MEDIUM ,
+				'color' => array(
+					'rgb' => '143860'
+				)
+			)
+		),
+		'alignment' =>  array(
+			'horizontal'=> PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
+			'vertical'  => PHPExcel_Style_Alignment::VERTICAL_CENTER,
+			'wrap'      => TRUE
+		)
+	);
+	 
+	$estiloInformacion = new PHPExcel_Style();
+	$estiloInformacion->applyFromArray( array(
+		'font' => array(
+			'name'  => 'Arial',
+			'color' => array(
+				'rgb' => '000000'
+			)
+		),
+		'fill' => array(
+		'type'  => PHPExcel_Style_Fill::FILL_SOLID,
+		'color' => array(
+				'argb' => 'FFd9b7f4')
+		),
+		'borders' => array(
+			'left' => array(
+				'style' => PHPExcel_Style_Border::BORDER_THIN ,
+			'color' => array(
+					'rgb' => '3a2a47'
+				)
+			)
+		)
+	));
+	
+	
+	$sql = "SELECT 
+				iddato,
+				codigocuenta,
+				comprobante,
+				concat(SUBSTRING(fecha,4,2),'/',SUBSTRING(fecha,1,2),'/',SUBSTRING(fecha,7,4)) as fecha,
+				documento,
+				documentoreferencia,
+				nit,
+				detalle,
+				tipo,
+				CAST(valor AS DECIMAL(14,2)) as valor,
+				CAST(valorbase AS DECIMAL(14,2)) as valorbase,
+				centrocostos,
+				transaccion,
+				plazo,
+				nombre,
+				descripcion,
+				token
+			FROM
+				ed_datos
+			where token = '".$token."'
+			 order by iddato";
+	$res 		=	$this->query($sql,0);
+	
+	if ($res == false) {
+		return 'Error al traer datos';
+	} else {
+		
+		$i = 4; //Numero de fila donde se va a comenzar a rellenar
+		 while ($fila = mysql_fetch_array($res)) {
+			 $objPHPExcel->setActiveSheetIndex(0)
+				 ->setCellValue('A'.$i, $fila['codigocuenta'])
+				 ->setCellValue('B'.$i, $fila['comprobante'])
+				 ->setCellValue('C'.$i, $fila['fecha'])
+				 ->setCellValue('D'.$i, $fila['documento'])
+				 ->setCellValue('E'.$i, $fila['documentoreferencia'])
+				 ->setCellValue('F'.$i, $fila['nit'])
+				 ->setCellValue('G'.$i, $fila['detalle'])
+				 ->setCellValue('H'.$i, $fila['tipo'])
+				 ->setCellValue('I'.$i, $fila['valor'])
+				 ->setCellValue('J'.$i, $fila['valorbase'])
+				 ->setCellValue('K'.$i, $fila['centrocostos'])
+				 ->setCellValue('L'.$i, $fila['transaccion'])
+				 ->setCellValue('M'.$i, $fila['plazo']);
+			 $i++;
+		 }
+		
+		$objPHPExcel->getActiveSheet()->getStyle('A1:D1')->applyFromArray($estiloTituloReporte);
+		$objPHPExcel->getActiveSheet()->getStyle('A3:M3')->applyFromArray($estiloTituloColumnas);
+		$objPHPExcel->getActiveSheet()->setSharedStyle($estiloInformacion, "A4:M".($i-1));
+		
+		for($i = 'A'; $i <= 'M'; $i++){
+			$objPHPExcel->setActiveSheetIndex(0)->getColumnDimension($i)->setAutoSize(TRUE);
+		}
+		
+		// Se asigna el nombre a la hoja
+		$objPHPExcel->getActiveSheet()->setTitle('Resultado');
+		 
+		// Se activa la hoja para que sea la que se muestre cuando el archivo se abre
+		$objPHPExcel->setActiveSheetIndex(0);
+		 
+		// Inmovilizar paneles
+		//$objPHPExcel->getActiveSheet(0)->freezePane('A4');
+		//$objPHPExcel->getActiveSheet(0)->freezePaneByColumnAndRow(0,12);
+		
+		// Se manda el archivo al navegador web, con el nombre que se indica, en formato 2007
+		header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+		header('Content-Disposition: attachment;filename="Reportedealumnos.xlsx"');
+		header('Cache-Control: max-age=0');
+		 
+		$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+		$objWriter->save(str_replace('.php', '.xlsx', __FILE__));
+		exit;
+		
+		return 'Archivo generado';
+	}
+	
+	
+}
+
+function cargarExcel($archivo,$nombre,$descripcion) {
+					$token = $this->GUID();
                     //incluimos la clase
                     require_once '../excelClass/PHPExcel/IOFactory.php';
                     
@@ -151,7 +460,7 @@ function cargarExcel($archivo,$nombre,$descripcion) {
 							$datos["documentoreferencia"] = $objCelda['D'];
 							
 							//funcion para ir a buscar al proveedor
-							$datos["nit"] = $objCelda['F'];
+							$datos["nit"] = $this->traerNIT($objCelda['F']);
 							
 							
 							if ($objCelda['F'] == 'JUAN PABLO SILVA') {
@@ -173,7 +482,7 @@ function cargarExcel($archivo,$nombre,$descripcion) {
 											<td>'.$datos["plazo"].'</td>
 										</tr>
 									';*/
-									$this->insertarDatos($datos["codigocuenta"][$i],$datos["comprobante"],$datos["fecha"],$datos["documento"],$datos["documentoreferencia"],$datos["nit"],$datos["detalle"][$i],$datos["tipo"][$i],$datos["valor"][$i],$datos["valorbase"][$i],$datos["centrocostos"][$i],$datos["transaccion"],$datos["plazo"],$nombre,$descripcion);
+									$this->insertarDatos($datos["codigocuenta"][$i],$datos["comprobante"],$datos["fecha"],$datos["documento"],$datos["documentoreferencia"],$datos["nit"],$datos["detalle"][$i],$datos["tipo"][$i],$datos["valor"][$i],$datos["valorbase"][$i],$datos["centrocostos"][$i],$datos["transaccion"],$datos["plazo"],$nombre,$descripcion,$token);
 								}
 							
 							} else {
@@ -195,12 +504,16 @@ function cargarExcel($archivo,$nombre,$descripcion) {
 											<td>'.$datos["plazo"].'</td>
 										</tr>
 									';*/
-									$this->insertarDatos($datos["codigocuenta"][$i],$datos["comprobante"],$datos["fecha"],$datos["documento"],$datos["documentoreferencia"],$datos["nit"],$datos["detalle"][$i],$datos["tipo"][$i],$datos["valor"][$i],$datos["valorbase"][$i],$datos["centrocostos"][$i],$datos["transaccion"],$datos["plazo"],$nombre,$descripcion);
+									$this->insertarDatos($datos["codigocuenta"][$i],$datos["comprobante"],$datos["fecha"],$datos["documento"],$datos["documentoreferencia"],$datos["nit"],$datos["detalle"][$i],$datos["tipo"][$i],$datos["valor"][$i],$datos["valorbase"][$i],$datos["centrocostos"][$i],$datos["transaccion"],$datos["plazo"],$nombre,$descripcion,$token);
 								}
 							}
 						}
                     }
+					
+					return $this->traerDatosImportadosToken($token);
 }
+
+
 
 
 
