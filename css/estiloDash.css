@@ -5,11 +5,11 @@
 }
 
 body {
-	background: url(../imagenes/tileable_wood_texture.png) repeat;
+	//background: url(../imagenes/tileable_wood_texture.png) repeat;
 
 	/*background:url(../imagenes/fabric_of_squares_gray.png) repeat;*/
 
-/*background:#FFF;*/
+background: #CCC;
 }
 
 body > h3 {

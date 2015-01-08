@@ -279,18 +279,25 @@ $fecha = date('Y-m-d');
                     </div>
                 </div>
             	<div class="row">
-            		<div class="col-md-5">
+            		<div class="col-md-4">
                         <label class="control-label" for="archivos">Seleccione el archivo a subir</label>
                         <div class="form-group col-md-12">
                             <input type="file" name="archivo" id="archivo"/>
                         </div>
                     </div>
                     
-                    <div class="col-md-5">
-                    	<button type="button" class="btn btn-success" id="cargar">Cargar</button>
+                    <div class="col-md-1">
+                    	<button type="button" class="btn btn-success" id="cargar" name="cargar">Cargar</button>
                     </div>
                     <div class="col-md-2">
-                    
+                    	<button type="button" class="btn btn-info" id="exportartxt" name="exportartxt">Exportar .txt</button>
+                    </div>
+                    <div class="col-md-2">
+                    	<button type="button" class="btn btn-primary" id="exportarexcel" name="exportarexcel">Exportar .xlsx</button>
+                    </div>
+                    <div class="col-md-3">
+                    	<p>Nombre del archivo <span id="resultado"></span></p>
+                    	<input type="text" name="nombrearchivo" id="nombrearchivo" class="form-control"/>
                     </div>
                 </div>
                 <input type="hidden" id="accion" name="accion" value="importar">
@@ -350,6 +357,7 @@ $(document).ready(function(){
 	});
 
 $('#cargar').click(function() {
+
 	var formData = new FormData($(".formulario")[0]);
 			var message = "";
 			//hacemos la petición ajax  
@@ -381,6 +389,41 @@ $('#cargar').click(function() {
 			});//fin del ajax
 			
 });
+
+$('#exportartxt').click(function(e) {
+    $.ajax({
+			data:  {nombrearchivo:	$("#nombrearchivo").val(),
+					accion:	'ImportarTxt'},
+			url:   '../ajax/ajax.php',
+			type:  'post',
+			beforeSend: function () {
+					$("#load").html('<img src="../imagenes/load13.gif" width="50" height="50" />');
+			},
+			success:  function (response) {
+				$('#resultado').html(' Resultado:'+response);
+				$("#load").html('');
+			}
+		});
+});
+
+
+$('#exportarexcel').click(function(e) {
+    $.ajax({
+			data:  {nombrearchivo:	$("#nombrearchivo").val(),
+					accion:	'ImportarExcel'},
+			url:   '../ajax/ajax.php',
+			type:  'post',
+			beforeSend: function () {
+					$("#load").html('<img src="../imagenes/load13.gif" width="50" height="50" />');
+			},
+			success:  function (response) {
+				$('#resultado').html(' Resultado:'+response);
+				$("#load").html('');
+			}
+		});
+});
+
+
 
 });
 </script>
