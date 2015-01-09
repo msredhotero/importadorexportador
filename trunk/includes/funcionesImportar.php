@@ -107,6 +107,38 @@ function GUID()
     return sprintf('%04X%04X-%04X-%04X-%04X-%04X%04X%04X', mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(16384, 20479), mt_rand(32768, 49151), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535));
 }
 
+function eliminarImportacion($token) {
+	$sql = "delete from ed_datos where token = '".$token."'";
+	$res 		=	$this->query($sql,0);
+	
+	if ($res == false) {
+		return 'Error al eliminar datos';
+	} else {
+		return $res;
+	}
+}
+
+function traerDatosImportados() {
+	$sql = "SELECT 
+				nombre,
+				descripcion,
+				max(fechacreacion) as fechacreacion,
+				token
+			FROM
+				ed_datos
+			group by
+				nombre,
+				descripcion,
+				token
+			 order by fechacreacion desc";
+	$res 		=	$this->query($sql,0);
+	
+	if ($res == false) {
+		return 'Error al traer datos';
+	} else {
+		return $res;
+	}
+}
 
 function traerDatosImportadosToken($token) {
 	$sql = "SELECT 
@@ -170,7 +202,7 @@ function ImportarTxt($token,$nombrearchivo) {
 		return 'Error al traer datos';
 	} else {
 		
-		$file = fopen("../archivos/".$nombrearchivo.".txt", "w");
+		$file = fopen("C:/".$nombrearchivo.".txt", "w");
 		
 		fwrite($file, 'Cuenta	Comprobante	Fecha(mm/dd/yyyy)	Documento	Documento Ref.	Nit	Detalle	Tipo	Valor	Base	Centro de Costo	Trans. Ext	Plazo' . PHP_EOL);
 		
@@ -396,7 +428,7 @@ function ImportarExcel($token,$nombrearchivo) {
 		header('Cache-Control: max-age=0');
 		 
 		$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
-		$objWriter->save(str_replace('.php', '.xlsx', __FILE__));
+		$objWriter->save('C:/'.$nombrearchivo.'.xlsx');
 		exit;
 		
 		return 'Archivo generado';
@@ -463,7 +495,7 @@ function cargarExcel($archivo,$nombre,$descripcion) {
 							$datos["nit"] = $this->traerNIT($objCelda['F']);
 							
 							
-							if ($objCelda['F'] == 'JUAN PABLO SILVA') {
+							if ($datos["nit"] == '860026123') {
 								for ($i=0;$i<7;$i++) {
 									/*echo '
 										<tr>

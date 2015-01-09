@@ -2,20 +2,22 @@
 
 session_start();
 
-if ((!isset($_SESSION['usua_se'])) && ($_SESSION['refrol_se'] == 1))
+if (!isset($_SESSION['usua_cv']))
 {
-	header('Location: /wportalinmobiliario/vistas/');
+	header('Location: /importadorexportador/index.php');
 } else {
 
+include ('../../includes/funcionesProveedores.php');
+include ('../../includes/funcionesUsuarios.php');
+include ('../../includes/funcionesImportar.php');
 
-require '../../includes/funcionesProductos.php';
+$serviciosProveedores = new ServiciosProveedores();
+$serviciosUsuario = new ServiciosUsuarios();
+$serviciosImportar = new ServiciosImportar();
 
+$resProveedores = $serviciosProveedores->traerProveedores();
 
-$serviciosProductos = new ServiciosProductos();
-
-$id = $_GET['id'];
-
-$resProveedores = $serviciosProductos->traerProveedoresPorId($id);;
+$fecha = date('Y-m-d');
 
 ?>
 
@@ -23,9 +25,8 @@ $resProveedores = $serviciosProductos->traerProveedoresPorId($id);;
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>Gestión de Cancha: La Caldera del Diablo</title>
+<title>Sistema de Importación y Exportación</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 
 
 <link href="../../css/estiloDash.css" rel="stylesheet" type="text/css">
@@ -49,7 +50,7 @@ $resProveedores = $serviciosProductos->traerProveedoresPorId($id);;
     
     <script type="text/javascript">
 		$( document ).ready(function() {
-			$('.icodashboard2, .icoalquileres2, .icousuarios2, .icoinmubles2, .icoreportes2, .icocontratos2, .icosalir2').click(function() {
+			$('.icodashboard2, .icoventas2, .icousuarios2, .icoturnos2, .icoproductos2, .icoreportes2, .icocontratos2, .icosalir2').click(function() {
 				$('.menuHober').hide();
 				$('.todoMenu').show(100, function() {
 					$('#navigation').animate({'margin-left':'0px'}, {
@@ -217,29 +218,19 @@ $resProveedores = $serviciosProductos->traerProveedoresPorId($id);;
 	<div class="todoMenu">
         <div id="mobile-header">
             Menu
-            <p>Usuario: <span style="color: #333; font-weight:900;">AdminMarcos</span></p>
+            <p>Usuario: <span style="color: #333; font-weight:900;"><?php echo $_SESSION['nombre_cv']; ?></span></p>
             <p class="ocultar" style="color: #900; font-weight:bold; cursor:pointer; font-family:'Courier New', Courier, monospace; height:20px;">(Ocultar)</p>
         </div>
     
         <nav class="nav">
             <ul>
                 <li class="arriba"><div class="icodashboard"></div><a href="../index.php">Dashboard</a></li>
-                <li><div class="icoturnos"></div><a href="../turnos/">Turnos</a></li>
-                <li><div class="icoventas"></div><a href="../ventas/">Ventas</a></li>
-                <li><div class="icousuarios"></div><a href="../clientes/">Clientes</a></li>
-                <li><div class="icoproductos"></div><a href="../productos/">Productos</a></li>
                 <li><div class="icocontratos"></div><a href="index.php">Proveedores</a></li>
-                <li><div class="icoreportes"></div><a href="../reportes/">Reportes</a></li>
-                <li><div class="icosalir"></div><a href="../salir/">Salir</a></li>
+                <li><div class="icosalir"></div><a href="../logout.php">Salir</a></li>
             </ul>
         </nav>
         
-        <div id="infoMenu">
-            <p>Información del Menu</p>
-        </div>
-        <div id="infoDescrMenu">
-            <p>La descripción breve de cada item sera detallada aqui, deslizando el mouse por encima de cada menu.</p>
-        </div>
+      
      </div>
      <div class="menuHober">
      	<ul class="ulHober">
@@ -248,29 +239,10 @@ $resProveedores = $serviciosProductos->traerProveedoresPorId($id);;
                     <div class="tooltip-dash">Dashboard</div>
                 </li>
                 <li>
-                	<div class="icoturnos2" id="tooltip3"></div>
-                    <div class="tooltip-inmu">Turnos</div>
+                	<div class="icocontratos2" id="tooltip4"></div>
+                    <div class="tooltip-alqui">Proveedores</div>
                 </li>
-                <li>
-                	<div class="icoventas2" id="tooltip4"></div>
-                    <div class="tooltip-alqui">Ventas</div>
-                </li>
-                <li>
-                	<div class="icousuarios2" id="tooltip5"></div>
-                    <div class="tooltip-usua">Clientes</div>
-                </li>
-                <li>
-                	<div class="icoproductos2" id="tooltip9"></div>
-                    <div class="tooltip-con">Productos</div>
-                </li>
-                <li>
-                	<div class="icocontratos2" id="tooltip6"></div>
-                    <div class="tooltip-con">Proveedores</div>
-                </li>
-                <li>
-                	<div class="icoreportes2" id="tooltip7"></div>
-                    <div class="tooltip-rep">Reportes</div>
-                </li>
+         
                 <li>
                 	<div class="icosalir2" id="tooltip8"></div>
                     <div class="tooltip-sal">Salir</div>
@@ -288,87 +260,111 @@ $resProveedores = $serviciosProductos->traerProveedoresPorId($id);;
         	<p style="color: #fff; font-size:18px; height:16px;">Nuevo Proveedor</p>
         </div>
     	<div class="cuerpoBox">
-        <form class="form-horizontal" role="form">
+        <form class="form-horizontal formulario" role="form">
                 	
-                <!--proveedor,direccion, telefono, cuit, nombre -->
+                <!--proveedor,direccion, telefono, cuit, nombre, email -->
                 
                 	<div class="form-group">
                     	<label for="proveedor" class="col-lg-3 control-label" style="text-align:left">Proveedor</label>
                         <div class="col-lg-5">
-                        	<input type="text" value="<?php echo mysql_result($resProveedores,0,'proveedor'); ?>" class="form-control" id="proveedor" name="proveedor" placeholder="Ingrese el Proveedor..." required>
+                        	<input type="text" class="form-control" id="proveedor" name="proveedor" placeholder="Ingrese el Proveedor..." required>
                         </div>
                     </div>
                     
                     <div class="form-group">
-                    	<label for="direccion" class="col-lg-3 control-label" style="text-align:left">Dirección</label>
+                    	<label for="direccion" class="col-lg-3 control-label" style="text-align:left">NIT</label>
                         <div class="col-lg-5">
-                        	<input type="text" value="<?php echo mysql_result($resProveedores,0,'direccion'); ?>" class="form-control" id="direccion" name="direccion" placeholder="Ingrese el Dirección..." required>
+                        	<input type="text" class="form-control" id="nit" name="nit" placeholder="Ingrese el NIT..." required>
                         </div>
                     </div>
                     
                     
-                    <div class="form-group">
-                    	<label for="nombre" class="col-lg-3 control-label" style="text-align:left">Nombre</label>
-                        <div class="col-lg-5">
-                        	<input type="text" value="<?php echo mysql_result($resProveedores,0,'nombre'); ?>" class="form-control" id="nombre" name="nombre" placeholder="Ingrese el Nombre..." required>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                    	<label for="telefono" class="col-lg-3 control-label" style="text-align:left">Teléfono</label>
-                        <div class="col-lg-5">
-                        	<input type="text" value="<?php echo mysql_result($resProveedores,0,'telefono'); ?>" class="form-control" id="telefono" name="telefono" placeholder="Ingrese el Teléfono..." required>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                    	<label for="cuit" class="col-lg-3 control-label" style="text-align:left">Cuit</label>
-                        <div class="col-lg-5">
-                        	<input type="text" value="<?php echo mysql_result($resProveedores,0,'cuit'); ?>" class="form-control" id="cuit" name="cuit" placeholder="Ingrese el Cuit..." required>
-                        </div>
-                    </div>
-                    
-                    
-                	<div class="form-group">
-                    	<label for="eamil" class="col-lg-3 control-label" style="text-align:left">E-Mail</label>
-                        <div class="col-lg-5">
-                        	<input type="email" value="<?php echo mysql_result($resProveedores,0,'email'); ?>" class="form-control" id="email" name="email" placeholder="Ingrese el E-Mail..." required>
-                        </div>
-                    </div>
-                
                     
                     
                     <ul class="list-inline">
                     	<li>
-                    		<button type="button" class="btn btn-warning" id="modificar" style="margin-left:0px;">Modificar</button>
+                    		<button type="button" class="btn btn-primary" id="cargar" style="margin-left:0px;">Crear</button>
                         </li>
-                        <li>
-                        	<button type="button" class="btn btn-danger varborrar" id="<?php echo $id; ?>" style="margin-left:0px;">Eliminar</button>
-                        </li>
-                        <li>
- 							<button type="button" class="btn btn-default volver" style="margin-left:0px;">Volver</button>                       
-                        </li>
+                        
    
                     </ul>
                     <div id="load">
                     
                     </div>
-                    <div class="alert">
-                    
-                    </div>
-                    <input type="hidden" id="accion" name="accion" value="modificarProveedores"/>
-                    <input type="hidden" id="id" name="id" value="<?php echo $id; ?>"/>
+                    <div id="error" class="alert alert-info">
+                		<p><strong>Importante!:</strong> El campo proveedor y NIT son obligatorios</p>
+                	</div>
+                    <input type="hidden" id="accion" name="accion" value="insertarProveedores"/>
                 </form>
                 
                 <br>
-                <div id="error">
                 
-                </div>
         </div>
     </div>
 
     
-    
+    <div class="boxInfo">
+        <div id="headBoxInfo">
+        	<p style="color: #fff; font-size:18px; height:16px;">Ultimos 10 Proveedores Cargados</p>
+        </div>
+    	<div class="cuerpoBox">
+        	<table class="table table-striped">
+            	<thead>
+                	<tr>
+                    	<th>Proveedor</th>
+                        <th>NIT</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <!--proveedor,direccion, telefono, cuit, nombre, email -->
+                	<?php
+						if (mysql_num_rows($resProveedores)>0) {
+							$cant = 0;
+							while ($row = mysql_fetch_array($resProveedores)) {
+								$cant+=1;
+								if ($cant == 11) {
+									break;	
+								}
+					?>
+                    	<tr>
+                        	<td><?php echo utf8_encode($row['proveedor']); ?></td>
+                            <td><?php echo utf8_encode($row['nit']); ?></td>
+
+                            <td>
+                            		<div class="btn-group">
+										<button class="btn btn-success" type="button">Acciones</button>
+										
+										<button class="btn btn-success dropdown-toggle" data-toggle="dropdown" type="button">
+										<span class="caret"></span>
+										<span class="sr-only">Toggle Dropdown</span>
+										</button>
+										
+										<ul class="dropdown-menu" role="menu">
+											<li>
+											<a href="javascript:void(0)" class="varmodificar" id="<?php echo $row['idproveedor']; ?>">Modificar</a>
+											</li>
+
+											<li>
+											<a href="javascript:void(0)" class="varborrar" id="<?php echo $row['idproveedor']; ?>">Borrar</a>
+											</li>
+
+										</ul>
+									</div>
+                             </td>
+                        </tr>
+                    <?php } ?>
+                    <?php } else { ?>
+                    	<h3>No hay proveedores cargados.</h3>
+                    <?php } ?>
+                </tbody>
+            </table>
+            <div style="height:50px;">
+            
+            </div>
+            <button type="button" class="btn btn-default ver" style="margin-left:0px;">Ver Todos</button>
+        </div>
+    </div>
 
 </div>
 
@@ -377,28 +373,39 @@ $resProveedores = $serviciosProductos->traerProveedoresPorId($id);;
         	<span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span>
             ¿Esta seguro que desea eliminar al Proveedor?.<span id="proveedorEli"></span>
         </p>
-        <p><strong>Importante: </strong>También se borrara la relación con los productos asociados</p>
+       
         <input type="hidden" value="" id="idEliminar" name="idEliminar">
 </div>
 
 <script type="text/javascript">
 $(document).ready(function(){
 	
-	$('.varborrar').click(function(event){
-			  usersid =  $(this).attr("id");
-			  if (!isNaN(usersid)) {
-				$("#idEliminar").val(usersid);
-				$("#dialog2").dialog("open");
-				
-			  } else {
-				alert("Error, vuelva a realizar la acción.");	
-			  }
+	$('.ver').click(function(event){
+			url = "ver.php";
+			$(location).attr('href',url);
 	});//fin del boton eliminar
 	
-	$('.volver').click(function(event){
-				url = "../proveedores/index.php";
-				$(location).attr('href',url);
+	$('.varborrar').click(function(event){
+		  usersid =  $(this).attr("id");
+		  if (!isNaN(usersid)) {
+			$("#idEliminar").val(usersid);
+			$("#dialog2").dialog("open");
+			//url = "../clienteseleccionado/index.php?idcliente=" + usersid;
+			//$(location).attr('href',url);
+		  } else {
+			alert("Error, vuelva a realizar la acción.");	
+		  }
 	});//fin del boton eliminar
+	
+	$('.varmodificar').click(function(event){
+		  usersid =  $(this).attr("id");
+		  if (!isNaN(usersid)) {
+			url = "modificar.php?id=" + usersid;
+			$(location).attr('href',url);
+		  } else {
+			alert("Error, vuelva a realizar la acción.");	
+		  }
+	});//fin del boton modificar
 
 	$( "#dialog2" ).dialog({
 		 	
@@ -449,6 +456,17 @@ $(document).ready(function(){
 		$("#proveedor").attr('placeholder','Ingrese el Proveedor');
 	});
 	
+	$("#nit").click(function(event) {
+		$("#nit").removeClass("alert-danger");
+		$("#nit").attr('value','');
+		$("#nit").attr('placeholder','Ingrese el Nit...');
+    });
+
+	$("#nit").change(function(event) {
+		$("#nit").removeClass("alert-danger");
+		$("#nit").attr('placeholder','Ingrese el Nit');
+	});
+	
 	function validador(){
 
 			$error = "";
@@ -458,6 +476,12 @@ $(document).ready(function(){
 				$error = "Es obligatorio el campo proveedor.";
 				$("#proveedor").addClass("alert-danger");
 				$("#proveedor").attr('placeholder',$error);
+			}
+			
+			if ($("#nit").val() == "") {
+				$error = "Es obligatorio el campo Nit.";
+				$("#nit").addClass("alert-danger");
+				$("#nit").attr('placeholder',$error);
 			}
 
 
@@ -523,6 +547,8 @@ $(document).ready(function(){
 
 });//fin del document ready
 </script>
+
 <?php } ?>
+
 </body>
 </html>
