@@ -24,19 +24,60 @@ switch ($accion) {
 	case 'ImportarExcel':
 		ImportarExcel($serviciosImportar);
 		break;
+	case 'insertarProveedores':
+		insertarProveedores($serviciosProveedores);
+		break;
+	case 'modificarProveedores':
+		modificarProveedores($serviciosProveedores);
+		break;
+	case 'eliminarProveedores':
+		eliminarProveedores($serviciosProveedores);
+		break;
+	case 'eliminarImportacion':
+		eliminarImportacion($serviciosImportar);
+		break;
+}
+
+function eliminarImportacion($serviciosImportar) {
+	$token = $_POST['token'];
 	
+	echo $serviciosImportar->eliminarImportacion($token);	
+}
+
+function insertarProveedores($serviciosProveedores) {
+	$proveedor	=	$_POST['proveedor'];
+	$nit		=	$_POST['nit'];
+	
+	echo $serviciosProveedores->insertarProveedores($proveedor,$nit);	
+}
+
+function modificarProveedores($serviciosProveedores) {
+	$id 		=	$_POST['id'];
+	$proveedor	=	$_POST['proveedor'];
+	$nit		=	$_POST['nit'];
+	
+	echo $serviciosProveedores->modificarProveedores($id,$proveedor,$nit);	
+}
+
+
+function eliminarProveedores($serviciosProveedores) {
+	$id = $_POST['id'];
+	
+	echo $serviciosProveedores->eliminarProveedores($id);	
 }
 
 function ImportarTxt($serviciosImportar){
-	$nombrearchivo = $_POST['nombrearchivo'];
+	$nombrearchivo	= $_POST['nombrearchivo'];
+	$token 			= $_POST['token'];
 	
-	echo $serviciosImportar->ImportarTxt('C81B15D0-B225-4E8F-9A80-CBA74A8AEAB7',$nombrearchivo);
+	echo $serviciosImportar->ImportarTxt($token,$nombrearchivo);
 }
 
 function ImportarExcel($serviciosImportar){
-	$nombrearchivo = $_POST['nombrearchivo'];
+	$nombrearchivo	= $_POST['nombrearchivo'];
+	$token 			= $_POST['token'];
 	
-	echo $serviciosImportar->ImportarExcel('C81B15D0-B225-4E8F-9A80-CBA74A8AEAB7',$nombrearchivo);
+	echo $serviciosImportar->ImportarExcel($token,$nombrearchivo);
 }
 
 

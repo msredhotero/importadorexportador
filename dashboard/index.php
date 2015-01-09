@@ -4,7 +4,7 @@ session_start();
 
 if (!isset($_SESSION['usua_cv']))
 {
-	header('Location: /exportardatos/login.php');
+	header('Location: /importadorexportador/index.php');
 } else {
 
 include ('../includes/funcionesProveedores.php');
@@ -15,6 +15,7 @@ $serviciosProveedores = new ServiciosProveedores();
 $serviciosUsuario = new ServiciosUsuarios();
 $serviciosImportar = new ServiciosImportar();
 
+$resImportados = $serviciosImportar->traerDatosImportados();
 
 $fecha = date('Y-m-d');
 
@@ -286,10 +287,10 @@ $fecha = date('Y-m-d');
                         </div>
                     </div>
                     
-                    <div class="col-md-1">
+                    <div class="col-md-3">
                     	<button type="button" class="btn btn-success" id="cargar" name="cargar">Cargar</button>
                     </div>
-                    <div class="col-md-2">
+                    <!--<div class="col-md-2">
                     	<button type="button" class="btn btn-info" id="exportartxt" name="exportartxt">Exportar .txt</button>
                     </div>
                     <div class="col-md-2">
@@ -298,7 +299,7 @@ $fecha = date('Y-m-d');
                     <div class="col-md-3">
                     	<p>Nombre del archivo <span id="resultado"></span></p>
                     	<input type="text" name="nombrearchivo" id="nombrearchivo" class="form-control"/>
-                    </div>
+                    </div>-->
                 </div>
                 <input type="hidden" id="accion" name="accion" value="importar">
             </form>
@@ -311,11 +312,78 @@ $fecha = date('Y-m-d');
 
 	<div class="boxInfo">
         <div id="headBoxInfo">
-        	<p style="color: #fff; font-size:18px; height:16px;">Datos Obtenidos</p>
+        	<p style="color: #fff; font-size:18px; height:16px;">Datos Importados</p>
         	
         </div>
     	<div class="cuerpoBox2">
-    		
+        	<div class="row" style="padding-left:10px; padding-top:8px;">
+            	<div class="col-md-11">
+                <div class="alert alert-info"><strong>Importante:</strong> Todos los archivos se guardarán en la unidad de su pc "C:/"</div>
+            	</div>
+                <div class="col-md-6">
+                	
+                    <label class="control-label" for="asd">Nombre del archivo <span id="resultado"></span></label>
+                    <div class="form-group col-md-12">
+                    	<input type="text" name="nombrearchivo" id="nombrearchivo" class="form-control"/>
+                    </div>
+                </div>
+            </div>            
+            <table class="table table-striped">
+            	<thead>
+                	<tr>
+                    	<th>Nombre</th>
+                    	<th>Descripción</th>
+                        <th>Fecha</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                	<?php
+						if (mysql_num_rows($resImportados)>0) {
+
+							while ($row = mysql_fetch_array($resImportados)) {
+
+					?>
+                    	<tr>
+
+                            <td><?php echo $row['nombre']; ?></td>
+                            <td><?php echo $row['descripcion']; ?></td>
+                            <td><?php echo $row['fechacreacion']; ?></td>
+
+                            <td>
+                            		<div class="btn-group">
+										<button class="btn btn-success" type="button">Exportar</button>
+										
+										<button class="btn btn-success dropdown-toggle" data-toggle="dropdown" type="button">
+										<span class="caret"></span>
+										<span class="sr-only">Toggle Dropdown</span>
+										</button>
+										
+										<ul class="dropdown-menu" role="menu">
+											<li>
+											<a href="javascript:void(0)" class="exportartxt" id="<?php echo $row['token']; ?>">A .txt</a>
+											</li>
+                                            
+                                            <li>
+											<a href="javascript:void(0)" class="exportarexcel" id="<?php echo $row['token']; ?>">A .xslx</a>
+											</li>
+
+											<li>
+											<a href="javascript:void(0)" class="varborrar" id="<?php echo $row['token']; ?>">Borrar</a>
+											</li>
+
+										</ul>
+									</div>
+                             </td>
+                        </tr>
+                    <?php } ?>
+                    <?php } else { ?>
+                    	<h3>No hay datos importados.</h3>
+                    <?php } ?>
+                </tbody>
+                
+            </table>
+            
             <div id="load">
             
             </div>
@@ -333,26 +401,58 @@ $fecha = date('Y-m-d');
 <div id="dialog2" title="Eliminar Producto">
     	<p>
         	<span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span>
-            ¿Esta seguro que desea eliminar el pedido?.<span id="proveedorEli"></span>
+            ¿Esta seguro que desea eliminar los datos importados?.<span id="proveedorEli"></span>
         </p>
-        <p><strong>Importante: </strong>Se borrara el pedido y se le enviara un email al cliente!.</p>
+
         <input type="hidden" value="" id="idEliminar" name="idEliminar">
 </div>
 
 
 <script type="text/javascript">
 $(document).ready(function(){
+	$('.varborrar').click(function(event){
+		  usersid =  $(this).attr("id");
 	
-	 $( '#dialog2' ).dialog({
+			$("#idEliminar").val(usersid);
+			$("#dialog2").dialog("open");
+			//url = "../clienteseleccionado/index.php?idcliente=" + usersid;
+			//$(location).attr('href',url);
+
+	});//fin del boton eliminar
+	
+	
+	$( '#dialog2' ).dialog({
 		autoOpen: false,
 		resizable: false,
 		width:800,
-		height:740,
+		height:140,
 		modal: true,
 		buttons: {
-			"Ok": function() {
-				$( this ).dialog( "close" );
-			}
+			"Eliminar": function() {
+	
+						$.ajax({
+									data:  {token: $('#idEliminar').val(), accion: 'eliminarImportacion'},
+									url:   '../ajax/ajax.php',
+									type:  'post',
+									beforeSend: function () {
+											
+									},
+									success:  function (response) {
+											url = "index.php";
+											$(location).attr('href',url);
+											
+									}
+							});
+						$( this ).dialog( "close" );
+						$( this ).dialog( "close" );
+							$('html, body').animate({
+	           					scrollTop: '1000px'
+	       					},
+	       					1500);
+				    },
+				    Cancelar: function() {
+						$( this ).dialog( "close" );
+				    }
 		}
 	});
 
@@ -379,8 +479,9 @@ $('#cargar').click(function() {
 				//una vez finalizado correctamente
 				success: function(data){
 					
-					$('.cuerpoBox2').prepend(data);
 					$("#load").html('');
+					url = "index.php";
+					$(location).attr('href',url);
 				},
 				//si ha ocurrido un error
 				error: function(){
@@ -390,9 +491,14 @@ $('#cargar').click(function() {
 			
 });
 
-$('#exportartxt').click(function(e) {
-    $.ajax({
+$('.exportartxt').click(function(event) {
+	token =  $(this).attr("id");
+
+	if ($('#nombrearchivo').val() != '') 
+	{
+		$.ajax({
 			data:  {nombrearchivo:	$("#nombrearchivo").val(),
+					token: token,
 					accion:	'ImportarTxt'},
 			url:   '../ajax/ajax.php',
 			type:  'post',
@@ -404,12 +510,21 @@ $('#exportartxt').click(function(e) {
 				$("#load").html('');
 			}
 		});
+	} else {
+		alert('Debe seleccionar un nombre para el archivo que se va a generar');	
+	}
+
 });
 
 
-$('#exportarexcel').click(function(e) {
-    $.ajax({
+$('.exportarexcel').click(function(e) {
+	token =  $(this).attr("id");
+
+	if ($('#nombrearchivo').val() != '') 
+	{
+		$.ajax({
 			data:  {nombrearchivo:	$("#nombrearchivo").val(),
+					token: token,
 					accion:	'ImportarExcel'},
 			url:   '../ajax/ajax.php',
 			type:  'post',
@@ -421,6 +536,10 @@ $('#exportarexcel').click(function(e) {
 				$("#load").html('');
 			}
 		});
+	} else {
+		alert('Debe seleccionar un nombre para el archivo que se va a generar');	
+	}
+
 });
 
 
