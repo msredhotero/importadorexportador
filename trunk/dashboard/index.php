@@ -280,7 +280,7 @@ $fecha = date('Y-m-d');
                     </div>
                 </div>
             	<div class="row">
-            		<div class="col-md-4">
+            		<div class="col-md-12">
                         <label class="control-label" for="archivos">Seleccione el archivo a subir</label>
                         <div class="form-group col-md-12">
                             <input type="file" name="archivo" id="archivo"/>
