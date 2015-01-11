@@ -82,6 +82,32 @@ function insertarDatos($codigocuenta,$comprobante,$fecha,$documento,$documentore
 	}
 }
 
+
+function insertarDatosaux($documento,$fecha,$proveedor,$exento,$excluido,$nograbado,$grabado,$iva,$costototal,$token) 
+{
+	$sql = "insert into ed_importado(idimportado,documento,fecha,proveedor,exento,excluido,nograbado,grabado,iva,costototal,token) 
+			values
+				('',
+				'".$documento."',
+				'".$fecha."',
+				'".$proveedor."',
+				'".$exento."',
+				'".$excluido."',
+				'".$nograbado."',
+				'".$grabado."',
+				'".$iva."',
+				'".$costototal."',
+				'".$token."')";
+	//echo $sql;
+	$res 		=	$this->query($sql,1);
+	
+	if ($res == false) {
+		return 'Error al insertar datos';
+	} else {
+		return $res;
+	}
+}
+
 function traerNIT($proveedor) {
 	$sql = "select nit from ed_proveedores where proveedor like '%".rtrim($proveedor)."%'";
 	$res 		=	$this->query($sql,0);
@@ -439,6 +465,7 @@ function ImportarExcel($token,$nombrearchivo) {
 
 function cargarExcel($archivo,$nombre,$descripcion) {
 					$token = $this->GUID();
+					$token2 = $this->GUID();
                     //incluimos la clase
                     require_once '../excelClass/PHPExcel/IOFactory.php';
                     
@@ -469,7 +496,13 @@ function cargarExcel($archivo,$nombre,$descripcion) {
                     //recorremos las filas obtenidas
                     foreach ($objHoja as $iIndice=>$objCelda) {
                         //imprimimos el contenido de la celda utilizando la letra de cada columna
-						if ((integer)$objCelda['D'] > 0) {
+						
+						/*$this->insertarDatosaux($objCelda['D'],$objCelda['E'],$objCelda['F'],$objCelda['J'],$objCelda['M'],$objCelda['S'],$objCelda['T'],$objCelda['V'],$objCelda['X'],$token);*/
+						
+						if (($objCelda['D'] != '') && ($objCelda['D'] != 'Documento')) {
+							
+							
+							
 							$datos["valor"][0] = $objCelda['T'] == '' ? 0 : str_replace('$','',str_replace(',','',$objCelda['T']));
 							$datos["valor"][1] = $objCelda['M'] == '' ? 0 : str_replace('$','',str_replace(',','',$objCelda['M']));
 							$datos["valor"][2] = $objCelda['J'] == '' ? 0 : str_replace('$','',str_replace(',','',$objCelda['J']));
@@ -493,6 +526,7 @@ function cargarExcel($archivo,$nombre,$descripcion) {
 							
 							//funcion para ir a buscar al proveedor
 							$datos["nit"] = $this->traerNIT($objCelda['F']);
+							
 							
 							
 							if ($datos["nit"] == '860026123') {
