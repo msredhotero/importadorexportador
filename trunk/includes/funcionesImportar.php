@@ -172,8 +172,18 @@ function traerDatosImportadosToken($token) {
 				RPAD(codigocuenta, 20, ' ') as codigocuenta,
 				comprobante,
 				concat(SUBSTRING(fecha,4,2),'/',SUBSTRING(fecha,1,2),'/',SUBSTRING(fecha,7,4)) as fecha,
-				LPAD(documento, 9, '0') as documento,
-				LPAD(documentoreferencia, 9, '0') as documentoreferencia,
+				(case when length(documento) > 9
+				then
+					substring(documento,length(documento)-9+1)
+				else
+					LPAD(documento, 9, '0')
+				end) as documento,
+				(case when length(documentoreferencia) > 9
+				then
+					substring(documentoreferencia,length(documentoreferencia)-9+1)
+				else
+					LPAD(documento, 9, '0')
+				end) as documentoreferencia,
 				nit,
 				RPAD(detalle, 28, ' ') as detalle,
 				tipo,
@@ -205,8 +215,18 @@ function ImportarTxt($token,$nombrearchivo) {
 				RPAD(codigocuenta, 20, ' ') as codigocuenta,
 				comprobante,
 				concat(SUBSTRING(fecha,4,2),'/',SUBSTRING(fecha,1,2),'/',SUBSTRING(fecha,7,4)) as fecha,
-				LPAD(documento, 9, '0') as documento,
-				LPAD(documentoreferencia, 9, '0') as documentoreferencia,
+				(case when length(documento) > 9
+				then
+					substring(documento,length(documento)-9+1)
+				else
+					LPAD(documento, 9, '0')
+				end) as documento,
+				(case when length(documentoreferencia) > 9
+				then
+					substring(documentoreferencia,length(documentoreferencia)-9+1)
+				else
+					LPAD(documento, 9, '0')
+				end) as documentoreferencia,
 				nit,
 				RPAD(detalle, 28, ' ') as detalle,
 				tipo,
@@ -388,8 +408,18 @@ function ImportarExcel($token,$nombrearchivo) {
 				codigocuenta,
 				comprobante,
 				concat(SUBSTRING(fecha,4,2),'/',SUBSTRING(fecha,1,2),'/',SUBSTRING(fecha,7,4)) as fecha,
-				documento,
-				documentoreferencia,
+				(case when length(documento) > 9
+				then
+					substring(documento,length(documento)-9+1)
+				else
+					LPAD(documento, 9, '0')
+				end) as documento,
+				(case when length(documentoreferencia) > 9
+				then
+					substring(documentoreferencia,length(documentoreferencia)-9+1)
+				else
+					LPAD(documento, 9, '0')
+				end) as documentoreferencia,
 				nit,
 				detalle,
 				tipo,
