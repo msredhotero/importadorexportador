@@ -578,7 +578,14 @@ function cargarExcel($archivo,$nombre,$descripcion) {
 											<td>'.$datos["plazo"].'</td>
 										</tr>
 									';*/
-									$this->insertarDatos($datos["codigocuenta"][$i],$datos["comprobante"],$datos["fecha"],$datos["documento"],$datos["documentoreferencia"],$datos["nit"],$datos["detalle"][$i],$datos["tipo"][$i],$datos["valor"][$i],$datos["valorbase"][$i],$datos["centrocostos"][$i],$datos["transaccion"],$datos["plazo"],$nombre,$descripcion,$token);
+									
+									
+									if ($datos["codigocuenta"][$i] == '233595') {
+										$codigocuenta = '220501';
+									} else {
+										$codigocuenta = $datos["codigocuenta"][$i];
+									}
+									$this->insertarDatos($codigocuenta,$datos["comprobante"],$datos["fecha"],$datos["documento"],$datos["documentoreferencia"],$datos["nit"],$datos["detalle"][$i],$datos["tipo"][$i],$datos["valor"][$i],$datos["valorbase"][$i],$datos["centrocostos"][$i],$datos["transaccion"],$datos["plazo"],$nombre,$descripcion,$token);
 								}
 							
 							} else {
