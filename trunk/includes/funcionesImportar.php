@@ -500,7 +500,7 @@ function cargarExcel($archivo,$nombre,$descripcion) {
                     require_once '../excelClass/PHPExcel/IOFactory.php';
                     
 					$datos = array('comprobante' => '00004',
-								   'codigocuenta' => array ('14350504','14350504','14350506','24081001','220501','129505','233595'),
+								   'codigocuenta' => array ('14350504','14350505','14350506','24081001','220501','129505','233595'),
 								   'fecha' => '',
 								   'documento' => '',
 								   'documentoreferencia' => '',
