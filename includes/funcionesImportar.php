@@ -109,7 +109,7 @@ function insertarDatosaux($documento,$fecha,$proveedor,$exento,$excluido,$nograb
 }
 
 function traerNIT($proveedor) {
-	$sql = "select nit from ed_proveedores where proveedor like '%".rtrim($proveedor)."%'";
+	$sql = "select nit from ed_proveedores where proveedor like '%".ltrim(rtrim($proveedor))."%'";
 	$res 		=	$this->query($sql,0);
 	
 	if ($res == false) {
@@ -527,7 +527,7 @@ function cargarExcel($archivo,$nombre,$descripcion) {
                     foreach ($objHoja as $iIndice=>$objCelda) {
                         //imprimimos el contenido de la celda utilizando la letra de cada columna
 						
-						/*$this->insertarDatosaux($objCelda['D'],$objCelda['E'],$objCelda['F'],$objCelda['J'],$objCelda['M'],$objCelda['S'],$objCelda['T'],$objCelda['V'],$objCelda['X'],$token);*/
+						$this->insertarDatosaux($objCelda['D'],$objCelda['E'],$objCelda['F'],$objCelda['J'],$objCelda['M'],$objCelda['S'],$objCelda['T'],$objCelda['V'],$objCelda['X'],$token);
 						
 						if (($objCelda['D'] != '') && ($objCelda['D'] != 'Documento')) {
 							
