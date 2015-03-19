@@ -97,7 +97,7 @@ function importar($serviciosImportar) {
 	$CostoTotal = 0;
 	
 	
-	$cad = '<table class"table table-striped" width="100%" cellpadding="0" cellspacing="0">
+	$cad = '<table class="table table-striped">
                 <thead>
                     <tr>
                         <th>Exento</th>
