@@ -307,6 +307,10 @@ $fecha = date('Y-m-d');
             <div id="load">
             
             </div>
+            
+            <div id="resultado">
+            	
+            </div>
     	</div>
     </div>
 
@@ -420,6 +424,10 @@ $(document).ready(function(){
 
 	});//fin del boton eliminar
 	
+	$('#confirmar').click(function(){
+		url = "index.php";
+		$(location).attr('href',url);
+	});
 	
 	$( '#dialog2' ).dialog({
 		autoOpen: false,
@@ -480,8 +488,9 @@ $('#cargar').click(function() {
 				success: function(data){
 					
 					$("#load").html('');
-					url = "index.php";
-					$(location).attr('href',url);
+					$('#resultado').html(data);
+					//url = "index.php";
+					//$(location).attr('href',url);
 				},
 				//si ha ocurrido un error
 				error: function(){
