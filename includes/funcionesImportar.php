@@ -493,6 +493,28 @@ function ImportarExcel($token,$nombrearchivo) {
 	
 }
 
+
+function traerDatosImportados2($token) {
+	$sql = "select
+					sum(e.exento),
+					sum(e.excluido),
+					sum(e.nograbado),
+					sum(e.grabado),
+					sum(e.iva),
+					sum(e.costototal)
+			from ed_importado e
+			where e.token = '".$token."' 
+				  and documento <> ''
+				  AND documento <> 'Documento'";
+	$res 		=	$this->query($sql,0);
+	
+	if ($res == false) {
+		return 'Error al traer datos';
+	} else {
+		return $res;
+	}
+}
+
 function cargarExcel($archivo,$nombre,$descripcion) {
 					$token = $this->GUID();
 					$token2 = $this->GUID();
@@ -536,7 +558,7 @@ function cargarExcel($archivo,$nombre,$descripcion) {
 							$datos["valor"][0] = $objCelda['T'] == '' ? 0 : str_replace('$','',str_replace(',','',$objCelda['T']));
 							$datos["valor"][1] = $objCelda['M'] == '' ? 0 : str_replace('$','',str_replace(',','',$objCelda['M']));
 							$datos["valor"][2] = $objCelda['J'] == '' ? 0 : str_replace('$','',str_replace(',','',$objCelda['J']));
-							$datos["valor"][3] = $objCelda['V'] == '' ? 0 : str_replace('$','',str_replace(',','',$objCelda['V'])) * 0.16;
+							$datos["valor"][3] = $objCelda['V'] == '' ? 0 : str_replace('$','',str_replace(',','',$objCelda['V']));
 							$datos["valor"][4] = $objCelda['X'] == '' ? 0 : str_replace('$','',str_replace(',','',$objCelda['X']));
 							$datos["valor"][5] = (str_replace('$','',str_replace(',','',$objCelda['T'])) + str_replace('$','',str_replace(',','',$objCelda['M'])) + str_replace('$','',str_replace(',','',$objCelda['J']))) * 0.01;
 							$datos["valor"][6] = (str_replace('$','',str_replace(',','',$objCelda['T'])) + str_replace('$','',str_replace(',','',$objCelda['M'])) + str_replace('$','',str_replace(',','',$objCelda['J']))) * 0.01;
@@ -613,7 +635,8 @@ function cargarExcel($archivo,$nombre,$descripcion) {
 						}
                     }
 					
-					return $this->traerDatosImportadosToken($token);
+					//return $this->traerDatosImportadosToken($token);
+					return $this->traerDatosImportados2($token);
 }
 
 
